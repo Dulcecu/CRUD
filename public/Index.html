@@ -1,0 +1,63 @@
+<!doctype html>
+<html ng-app="myApp" >
+<head>
+    <style>
+        #back {
+            background-image: url(img/back.png);
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+        #test {
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        #test:hover {opacity: 0.7;}
+    </style>
+    <script src="bower_components/angular/angular.min.js"></script>
+    <script src="bower_components/angular-route/angular-route.min.js"></script>
+    <script src="js/controllers/user.controller.js"></script>
+    <script src="js/services/user.service.js"></script>
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css">
+    <link rel="stylesheet" href="css/user.css">
+</head>
+<body id="back">
+<h2>User Management</h2>
+<div ng-controller="userCtrl">
+
+    <ul class="unstyled">
+        <li ng-repeat="user in users | filter:search">
+            <label class="checkbox">
+                <input type="checkbox" ng-model="user.done">
+                <span class="done-{{user.done}}">Name: {{user.name}} Password: {{user.password}}</span>
+            </label>
+        </li>
+    </ul>
+    <br><br>
+    <form ng-submit="userAdd()">
+        <input type="text" ng-model="userName" size="30"
+               placeholder="Add name">
+        <input type="text" ng-model="userPass" size="30"
+               placeholder="Add pass">
+        <input type="text" ng-model="newPass" size="30"
+               placeholder="New password">
+        <input type="text" ng-model="filterDB" size="30"
+               placeholder="Search in database">
+        <input type="text" ng-model="search.name" size="30"
+               placeholder="Search">
+        <input class ="button" type="submit" value="Add New User">
+    </form>
+    <button class ="button" ng-click="remove()">Remove User</button>
+    <button class ="button" ng-click="showList()">Show List</button>
+    <button class ="button" ng-click="update()">Update User</button>
+    <button class ="button" ng-click="filterdb()">Filter by Letter</button>
+    <br>
+
+    <label for="chk">
+        <input id="chk" type="checkbox" ng-model="checked"><span>Enable Multiple User Removal</span>
+    </label>
+</div>
+</body>
+</html>
