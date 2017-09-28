@@ -8,23 +8,29 @@ router.get('/', function(req, res, next) {
 });
 var app = express();
 var mongoose = require('mongoose');
-var users = mongoose.Schema({
-    name: String,
-    password: String
-});
-mongoose.connect("mongodb://localhost:27017/users", function(err, users) {
+mongoose.connect("mongodb://localhost:27017/users", function(err) {
     if(!err) {
         console.log("We are connected")
     }
 });
-var Usuario = mongoose.model('users', users);
+var Usuario = require('../models/users')
 var u;
 app.use(express.static('public'));
 app.use(bodyParser.json());
 app.post('/push', function (req, res) {
 
-        u=new Usuario({name:req.body.name,password:req.body.password});
-        u.save().then(function(){})
+
+        Usuario.findOne({name:req.body.name},function(err,usuarios){
+
+            if(usuarios!=null){
+
+            }
+            else{
+                u=new Usuario({name:req.body.name,password:req.body.password});
+                u.save().then(function(){})
+            }
+        });
+
         var users = []
         Usuario.find(function(err,usuarios){
             for (var i = 0; i < usuarios.length; i++) {
@@ -37,7 +43,7 @@ app.post('/push', function (req, res) {
 app.put('/update', function (req, res) {
     var userList=[];
 
-    Usuario.findOneAndUpdate({name:req.body.name},{password:req.body.new}).then(function () {
+    Usuario.findOneAndUpdate({name:req.body.name,password:req.body.password},{password:req.body.new}).then(function () {
         Usuario.find(function (err, usuarios) {
             for (var i = 0; i < usuarios.length; i++) {
                 userList.push({name: usuarios[i].name, password: usuarios[i].password});
@@ -50,28 +56,30 @@ app.put('/update', function (req, res) {
 
 app.delete('/delete', function (req, res) {
 
-    if(req.body.checked=="false")
-    {
-        Usuario.findOneAndRemove({name:req.body.name,password:req.body.password}, function (err, user){
-        })
-    }
-    else {
-        var listDelete = req.body;
-        var i = 0;
-        var len = listDelete.length;
+    var listDelete =req.body
+    var i = 0;
+    var len = listDelete.length;
+    if(len!=undefined) {
         for (; i < len; i++) {
             Usuario.findOneAndRemove({name: listDelete[i]}, function () {
             });
         }
     }
+    else
+    {
+        Usuario.findOneAndRemove({name:listDelete.name},function () {
+            
+        })
+    }
     var users = []
-    Usuario.find(function(err,usuarios){
+    Usuario.find(function (err, usuarios) {
         for (var i = 0; i < usuarios.length; i++) {
-            users.push({name: usuarios[i].name, password: usuarios[i].password, done:false});
+            users.push({name: usuarios[i].name, password: usuarios[i].password, done: false});
         }
         res.send(users);
     });
 });
+
 app.get('/all', function (req,res) {
     var users = []
     Usuario.find(function(err,usuarios){
