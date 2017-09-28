@@ -73,6 +73,7 @@
                 };
 
                 userSRV.removeUsers(data, function (list) {
+
                     $scope.users = list;
 
                 });

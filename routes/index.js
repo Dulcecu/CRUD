@@ -17,6 +17,18 @@ var Usuario = require('../models/users')
 var u;
 app.use(express.static('public'));
 app.use(bodyParser.json());
+
+returnAll=function (callback) {
+
+    var users = []
+    Usuario.find(function(err,usuarios){
+        for (var i = 0; i < usuarios.length; i++) {
+            users.push({name: usuarios[i].name, password: usuarios[i].password, done:false});
+        }
+
+        callback(users)
+    });
+}
 app.post('/push', function (req, res) {
 
 
@@ -31,14 +43,9 @@ app.post('/push', function (req, res) {
             }
         });
 
-        var users = []
-        Usuario.find(function(err,usuarios){
-            for (var i = 0; i < usuarios.length; i++) {
-                users.push({name: usuarios[i].name, password: usuarios[i].password, done:false});
-            }
-
-            res.send(users);
-        });
+    this.returnAll(function (callback) {
+        res.send(callback)
+    })
 });
 app.put('/update', function (req, res) {
     var userList=[];
@@ -68,27 +75,21 @@ app.delete('/delete', function (req, res) {
     else
     {
         Usuario.findOneAndRemove({name:listDelete.name},function () {
-            
+
         })
     }
-    var users = []
-    Usuario.find(function (err, usuarios) {
-        for (var i = 0; i < usuarios.length; i++) {
-            users.push({name: usuarios[i].name, password: usuarios[i].password, done: false});
-        }
-        res.send(users);
-    });
+
+    this.returnAll(function (callback) {
+        res.send(callback)
+    })
 });
 
 app.get('/all', function (req,res) {
-    var users = []
-    Usuario.find(function(err,usuarios){
-        for (var i = 0; i < usuarios.length; i++) {
-            users.push({name: usuarios[i].name, password: usuarios[i].password, done:false});
-        }
 
-        res.send(users);
-    });
+    this.returnAll(function (callback) {
+        res.send(callback)
+    })
+
 });
 app.get('/filterdb/:letter', function (req, res) {
     var userList=[];
