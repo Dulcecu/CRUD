@@ -13,14 +13,20 @@ mongoose.connect("mongodb://localhost:27017/users", function(err) {
         console.log("We are connected")
     }
 });
-var Usuario = require('../models/users')
+var Usuario = require('../models/users');
 var u;
+var bigInt = require("big-integer");
+var p=bigInt.zero;
+var q=bigInt.zero;
+var n=bigInt.zero;
+var d=bigInt.zero;
+var e= bigInt(65537);
 app.use(express.static('public'));
 app.use(bodyParser.json());
 
 returnAll=function (callback) {
 
-    var users = []
+    var users = [];
     Usuario.find(function(err,usuarios){
         for (var i = 0; i < usuarios.length; i++) {
             users.push({name: usuarios[i].name, password: usuarios[i].password, done:false});
@@ -28,7 +34,39 @@ returnAll=function (callback) {
 
         callback(users)
     });
-}
+};
+
+genNRSA=function () {
+
+    var base=bigInt(2);
+    var prime=false;
+
+    while (!prime) {
+        p = bigInt.randBetween(base.pow(255), base.pow(256).subtract(1));
+        prime = bigInt(p).isPrime()
+
+    }
+    prime = false;
+    while (!prime) {
+        q = bigInt.randBetween(base.pow(255), base.pow(256).subtract(1));
+        prime = bigInt(q).isPrime()
+    }
+    var phi = p.subtract(1).multiply(q.subtract(1));
+    n = p.multiply(q);
+    d = e.modInv(phi);
+
+
+
+    /*var test="master";
+    var buff=Buffer.from(test,'utf8');
+    var message= bigInt(buff.toString('hex'),16);
+    var enmessage=message.modPow(e,n);
+    var powmessage=enmessage.modPow(d,n);  /// el problema es que powmessage /= de message
+    buff=Buffer.from(powmessage.toString(16),'hex');*/
+
+
+};
+
 app.post('/push', function (req, res) {
 
 
@@ -63,7 +101,7 @@ app.put('/update', function (req, res) {
 
 app.delete('/delete', function (req, res) {
 
-    var listDelete =req.body
+    var listDelete =req.body;
     var i = 0;
     var len = listDelete.length;
     if(len!=undefined) {
@@ -82,6 +120,91 @@ app.delete('/delete', function (req, res) {
     this.returnAll(function (callback) {
         res.send(callback)
     })
+});
+app.post('/encode',function (req,res) {
+
+    if(n==bigInt.zero){
+        this.genNRSA(function () {
+
+        })
+    }
+    else{
+        var buff;
+        var enmessage=req.message.modPow(e,n);
+        var powmessage=enmessage.modPow(d,n);  /// el problema es que powmessage /= de message
+        buff=Buffer.from(powmessage.toString(16),'hex');
+    }
+
+});
+
+app.post('/decode',function (req,res) {
+
+    if(n==bigInt.zero){
+        this.genNRSA(function () {
+
+        })
+    }
+    else{
+
+        var buff;
+        var message=bigInt(req.body.message);
+        var powmessage=message.modPow(d,n);
+        buff=Buffer.from(powmessage.toString(16),'hex');
+        res.send(buff)
+    }
+
+});
+app.post('/blindSign',function (req,res) {
+
+    if(n==bigInt.zero){
+        this.genNRSA(function () {
+
+        })
+    }
+    else{
+
+        var message=bigInt(req.body.message);
+        var powmessage=message.modPow(d,n);
+        res.send(powmessage)
+    }
+
+});
+app.post('/decodeSigned',function (req,res) {
+
+    if(n==bigInt.zero){
+        this.genNRSA(function () {
+
+        })
+    }
+    else{
+
+        var buff;
+        var buffS;
+        var message=bigInt(req.body.message);
+        var sigmessage=bigInt(req.body.signature);
+        var modulus= bigInt(req.body.modulus);
+        var powmessage=message.modPow(d,n);
+        var publicE=req.body.publicE
+        var signature=sigmessage.modPow(publicE,modulus);
+        buff=Buffer.from(powmessage.toString(16),'hex');
+        buffS=Buffer.from(signature.toString(16),'hex');
+        res.send(buffS)
+    }
+
+});
+
+app.get('/getServer', function (req,res) {
+    if(n==bigInt.zero){
+        this.genNRSA(function () {
+
+        })
+    }
+    var data={
+        modulus:n,
+        serverE:e
+    };
+    res.send(data)
+
 });
 
 app.get('/all', function (req,res) {

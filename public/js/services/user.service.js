@@ -18,6 +18,45 @@
                 });
             });
         };
+        this.sendMessage = function (message, callback) {
+
+            var req = {
+                method: 'POST',
+                url: '/decode',
+                headers: {'Content-Type': 'application/json'},
+                data: message
+
+            };
+            $http(req).then(function (buff) {
+                callback(buff.data)
+            });
+        };
+        this.sendMessageSigned = function (message, callback) {
+
+            var req = {
+                method: 'POST',
+                url: '/decodeSigned',
+                headers: {'Content-Type': 'application/json'},
+                data: message
+
+            };
+            $http(req).then(function (buff) {
+                callback(buff.data)
+            });
+        };
+        this.sendMessageBlinded = function (message, callback) {
+
+            var req = {
+                method: 'POST',
+                url: '/blindSign',
+                headers: {'Content-Type': 'application/json'},
+                data: message
+
+            };
+            $http(req).then(function (buff) {
+                callback(buff.data)
+            });
+        };
         this.getUsers = function (callback) {
 
             $http.get('/all').then(function (response) {
@@ -25,6 +64,15 @@
             });
 
         };
+
+        this.getServer = function (callback) {
+
+            $http.get('/getServer').then(function (response) {
+                callback (response.data);
+            });
+
+        };
+
         this.removeUsers = function (data,callback) {
             var req = {
                 method: 'DELETE',
