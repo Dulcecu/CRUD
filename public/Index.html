@@ -1,6 +1,7 @@
 <!doctype html>
 <html ng-app="myApp" >
 <script src="http://peterolson.github.com/BigInteger.js/BigInteger.min.js"></script>
+<script type="text/javascript" src="bower_components/crypto-js/crypto-js.js"></script>
 
 <head>
     <style>
@@ -75,6 +76,11 @@
         <input class ="button" type="submit"  ng-disabled="!info2" value="Enviar con firma ciega">
     </form>
 
+    <form ng-submit="sendRepudiation()">
+        <input  ng-disabled="!info2" type="text" ng-model="textRepudiation" size="30"
+                placeholder="Mensaje aqui con no repudio">
+        <input class ="button" type="submit"  ng-disabled="!info2" value="Enviar con no repudio">
+    </form>
     <br>
     <button ng-if="!info2" class ="button"  ng-click="send()" >Pedir datos al servidor</button>
     <!--<button class ="button" ng-click="remove()">Remove User</button>
@@ -86,6 +92,6 @@
     <label for="chk">
         <input id="chk" type="checkbox" ng-model="checked"><span>Enable Multiple User Removal</span>
     </label>-->
-</>
+
 </body>
 </html>

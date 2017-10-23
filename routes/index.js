@@ -1,7 +1,7 @@
 var express = require('express'),
     bodyParser = require('body-parser');
 var router = express.Router();
-
+var CryptoJS= require('crypto-js/sha256');
 /* GET home page. */
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
@@ -184,7 +184,7 @@ app.post('/decodeSigned',function (req,res) {
         var sigmessage=bigInt(req.body.signature);
         var modulus= bigInt(req.body.modulus);
         var powmessage=message.modPow(d,n);
-        var publicE=req.body.publicE
+        var publicE=req.body.publicE;
         var signature=sigmessage.modPow(publicE,modulus);
         buff=Buffer.from(powmessage.toString(16),'hex');
         buffS=Buffer.from(signature.toString(16),'hex');
@@ -192,6 +192,57 @@ app.post('/decodeSigned',function (req,res) {
     }
 
 });
+
+app.post('/repudiationSigned',function (req,res) {
+
+    if(n==bigInt.zero){
+        this.genNRSA(function () {
+
+        })
+    }
+    else{
+
+        var buffS;
+        /////////
+        var origin=req.body.origin;
+        var destination=req.body.destination;
+        var message=req.body.message;
+        var modulus= bigInt(req.body.modulus);
+        var publicE=req.body.publicE;
+        /////////
+        var sigmessage=bigInt(req.body.signature);
+        var signature=sigmessage.modPow(publicE,modulus);
+        buffS=Buffer.from(signature.toString(16),'hex').toString();
+        //////////
+        var string=origin+"."+destination+"."+message;
+        var hash=CryptoJS(string);
+
+        if(hash==buffS){
+
+
+            string=destination+"."+origin+"."+message
+            hash=CryptoJS(string);
+            console.log(hash.toString())
+            var buff=Buffer.from(hash.toString(),'utf8');
+            var message= bigInt(buff.toString('hex'),16);
+            var enmessage=message.modPow(d,n);
+            var data = {
+                origin:destination,
+                destination:origin,
+                signature: enmessage,
+                message:req.body.message
+
+            };
+
+            res.send(data)
+        }
+        else {
+            res.send("ERROR")
+        }
+    }
+
+});
+
 
 app.get('/getServer', function (req,res) {
     if(n==bigInt.zero){

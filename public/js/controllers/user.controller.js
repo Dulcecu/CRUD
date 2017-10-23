@@ -11,6 +11,7 @@
         var serverN=bigInt.zero;
         var serverE=bigInt.zero;
         var e= bigInt(65537);
+        var sharedKey="Masmiwapo"
         $scope.info2=false;
         $scope.infoserver="Faltan datos del servidor";
         $scope.results="";
@@ -156,6 +157,61 @@
             }
 
         };
+
+        $scope.sendRepudiation=function () {
+
+            if(n==bigInt.zero){$scope.genNRSA(function () {})}
+            if($scope.textRepudiation!=null)
+            {
+                var origin="A"
+                var destination="B"
+                var message=$scope.textRepudiation
+                var cypher=CryptoJS.AES.encrypt(message,sharedKey).toString();
+                var string=origin+"."+destination+"."+cypher
+                var hash=CryptoJS.SHA256(string).toString()
+                var signature=convertToHex(hash);
+                var messageS=bigInt(signature, 16);
+                var sigmessage=messageS.modPow(d,n);
+                var data = {
+                    origin:origin,
+                    destination:destination,
+                    message: cypher,
+                    signature:sigmessage,
+                    modulus:n,
+                    publicE:e
+                };
+                userSRV.sendMessageSignedRepudiation(data, function (buff) {
+
+                    if(buff.origin==undefined)
+                    {
+                        $scope.results="ERROR WAPO WAPO"
+                        $scope.textRepudiation="";
+                    }
+                    else {
+                        var buffS;
+                        /////////
+                        var origin = buff.origin;
+                        var destination = buff.destination;
+                        var message = buff.message;
+                        var string = origin + "." + destination + "." + message;
+                        var sigmessage = bigInt(buff.signature);
+                        var signature = sigmessage.modPow(serverE, serverN);
+                        buffS = convertFromHex(signature.toString(16)).toString()
+                        //////////
+                        var string = origin + "." + destination + "." + message;
+                        var hash = CryptoJS.SHA256(string).toString();
+                        if (hash == buffS) {
+                            $scope.results = "Masmi es el mas pulido";
+                        } else {
+                            $scope.results = "ERROR WAPO"
+                        }
+                        $scope.textRepudiation="";
+                    }
+
+                });
+            }
+        };
+
         $scope.showList = function() {
 
             //var powmessage=enmessage.modPow(d,n);  /// el problema es que powmessage /= de message
