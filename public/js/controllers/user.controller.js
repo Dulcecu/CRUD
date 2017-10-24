@@ -11,7 +11,7 @@
         var serverN=bigInt.zero;
         var serverE=bigInt.zero;
         var e= bigInt(65537);
-        var sharedKey="Masmiwapo"
+        var sharedKey="Masmiwapo";
         $scope.info2=false;
         $scope.infoserver="Faltan datos del servidor";
         $scope.results="";
@@ -21,10 +21,18 @@
 
             });
         });
-        function convertFromHex(hex) { var hex = hex.toString();
-        var str = ''; for (var i = 0; i < hex.length; i += 2)str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+        function convertFromHex(hex) {
+            var hex = hex.toString();
+            var str = '';
+        for (var i = 0; i < hex.length; i += 2){
+            str += String.fromCharCode(parseInt(hex.substr(i, 2), 16))
+        }
         return str; }
-        function convertToHex(str) { var hex = ''; for(var i=0;i<str.length;i++) { hex += ''+str.charCodeAt(i).toString(16); }
+        function convertToHex(str) {
+            var hex = '';
+            for(var i=0;i<str.length;i++) {
+                hex += ''+str.charCodeAt(i).toString(16);
+            }
         return hex; }
 
         $scope.userAdd = function(){
@@ -85,7 +93,7 @@
                 serverE= data.serverE
             });
             $scope.infoserver="Informacion del servidor disponible ";
-            $scope.info2=true
+            $scope.info2=true;
 
         };
 
@@ -106,13 +114,13 @@
             }
             else {
                 this.serverData(function () {
-                    $scope.infoserver="Faltan datos del servidor"
                 })
             }
         };
         $scope.sendSignature=function () {
 
             if(n==bigInt.zero){$scope.genNRSA(function () {})}
+
             if($scope.textMessageS!=null)
             {
                 var buff = convertToHex($scope.textMessageS);
@@ -163,12 +171,13 @@
             if(n==bigInt.zero){$scope.genNRSA(function () {})}
             if($scope.textRepudiation!=null)
             {
-                var origin="A"
-                var destination="B"
-                var message=$scope.textRepudiation
+                var origin="A";
+                var destination="B";
+                var thirdpart="TTP";
+                var message=$scope.textRepudiation;
                 var cypher=CryptoJS.AES.encrypt(message,sharedKey).toString();
-                var string=origin+"."+destination+"."+cypher
-                var hash=CryptoJS.SHA256(string).toString()
+                var string=origin+"."+destination+"."+cypher;
+                var hash=CryptoJS.SHA256(string).toString();
                 var signature=convertToHex(hash);
                 var messageS=bigInt(signature, 16);
                 var sigmessage=messageS.modPow(d,n);
@@ -196,12 +205,61 @@
                         var string = origin + "." + destination + "." + message;
                         var sigmessage = bigInt(buff.signature);
                         var signature = sigmessage.modPow(serverE, serverN);
-                        buffS = convertFromHex(signature.toString(16)).toString()
+                        buffS = convertFromHex(signature.toString(16)).toString();
                         //////////
                         var string = origin + "." + destination + "." + message;
                         var hash = CryptoJS.SHA256(string).toString();
                         if (hash == buffS) {
-                            $scope.results = "Masmi es el mas pulido";
+
+                            var string=origin+"."+thirdpart+"."+destination+"."+sharedKey;
+                            var hash=CryptoJS.SHA256(string).toString();
+                            var signature=convertToHex(hash);
+                            var messageS=bigInt(signature, 16);
+                            var sigmessage=messageS.modPow(d,n);
+
+                            var data = {
+                                origin:origin,
+                                thirdpart:thirdpart,
+                                destination:destination,
+                                key:sharedKey,
+                                signature:sigmessage,
+                                modulus:n,
+                                publicE:e
+                            };
+                            console.log("a consultar con la tercera parte ");
+
+                            userSRV.sendMessageToThirdPart(data,function (buff2) {
+
+                                var buffS;
+                                /////////
+                                var thirdpart=buff2.thirdpart;
+                                var origin=buff2.origin;
+                                var destination=buff2.destination;
+                                var sharedKey=buff2.key;
+                                var modulus= bigInt(buff2.modulusTTP);
+                                var publicE=buff2.TTPE;
+                                /////////
+                                var sigmessage=bigInt(buff2.signature);
+                                var signature=sigmessage.modPow(publicE,modulus);
+                                buffS = convertFromHex(signature.toString(16)).toString();
+                                //////////
+                                var string=thirdpart+"."+origin+"."+destination+"."+sharedKey;
+                                var hash = CryptoJS.SHA256(string).toString();
+                                if(hash==buffS){
+
+                                    console.log("La clave compartida es: "+ sharedKey);
+                                    var message = CryptoJS.AES.decrypt(buff.message,sharedKey).toString(CryptoJS.enc.Utf8);
+                                    console.log("El mensaje es: "+message);
+
+                                    $scope.results = "Masmi es el mas pulido";
+
+                                }
+                                else {
+                                    $scope.results = "ERROR MASMASTICO"
+                                }
+
+                            });
+
                         } else {
                             $scope.results = "ERROR WAPO"
                         }

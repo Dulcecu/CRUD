@@ -57,6 +57,20 @@
                 callback(buff.data)
             });
         };
+
+        this.sendMessageToThirdPart = function (message, callback) {
+
+            var req = {
+                method: 'POST',
+                url: 'http://localhost:3600/repudiationThirdPart',
+                headers: {'Content-Type': 'application/json'},
+                data: message
+
+            };
+            $http(req).then(function (buff) {
+                callback(buff.data)
+            });
+        };
         this.sendMessageBlinded = function (message, callback) {
 
             var req = {

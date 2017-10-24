@@ -1,7 +1,9 @@
 var express = require('express'),
     bodyParser = require('body-parser');
 var router = express.Router();
-var CryptoJS= require('crypto-js/sha256');
+var HashJS= require('crypto-js/sha256');
+var CryptoJS = require("crypto-js");
+var request=require('request');
 /* GET home page. */
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
@@ -21,6 +23,7 @@ var q=bigInt.zero;
 var n=bigInt.zero;
 var d=bigInt.zero;
 var e= bigInt(65537);
+var criptogram = 0;
 app.use(express.static('public'));
 app.use(bodyParser.json());
 
@@ -54,16 +57,6 @@ genNRSA=function () {
     var phi = p.subtract(1).multiply(q.subtract(1));
     n = p.multiply(q);
     d = e.modInv(phi);
-
-
-
-    /*var test="master";
-    var buff=Buffer.from(test,'utf8');
-    var message= bigInt(buff.toString('hex'),16);
-    var enmessage=message.modPow(e,n);
-    var powmessage=enmessage.modPow(d,n);  /// el problema es que powmessage /= de message
-    buff=Buffer.from(powmessage.toString(16),'hex');*/
-
 
 };
 
@@ -207,6 +200,7 @@ app.post('/repudiationSigned',function (req,res) {
         var origin=req.body.origin;
         var destination=req.body.destination;
         var message=req.body.message;
+        criptogram = message;
         var modulus= bigInt(req.body.modulus);
         var publicE=req.body.publicE;
         /////////
@@ -215,17 +209,16 @@ app.post('/repudiationSigned',function (req,res) {
         buffS=Buffer.from(signature.toString(16),'hex').toString();
         //////////
         var string=origin+"."+destination+"."+message;
-        var hash=CryptoJS(string);
+        var hash=HashJS(string);
 
         if(hash==buffS){
 
 
             string=destination+"."+origin+"."+message
-            hash=CryptoJS(string);
-            console.log(hash.toString())
+            hash=HashJS(string);
             var buff=Buffer.from(hash.toString(),'utf8');
-            var message= bigInt(buff.toString('hex'),16);
-            var enmessage=message.modPow(d,n);
+            var message2=bigInt(buff.toString('hex'),16);
+            var enmessage=message2.modPow(d,n);
             var data = {
                 origin:destination,
                 destination:origin,
@@ -234,9 +227,12 @@ app.post('/repudiationSigned',function (req,res) {
 
             };
 
+            console.log("He recibido el mensaje de A")
+
             res.send(data)
         }
         else {
+            console.log("Algo paso")
             res.send("ERROR")
         }
     }
@@ -276,7 +272,49 @@ app.get('/filterdb/:letter', function (req, res) {
     });
 });
 
+function putTimer() {
+
+        console.log("He conseguido K?");
+
+    request('http://localhost:3600/getKey', function (error, response, body) {
+
+        if(body!=0) {
+
+            var tuputamadre = JSON.parse(response.body);
+
+            var buffS;
+            /////////
+            var thirdpart = tuputamadre.thirdpart;
+            var origin = tuputamadre.origin;
+            var destination = tuputamadre.destination;
+            var sharedKey = tuputamadre.key;
+            var modulus = bigInt(tuputamadre.modulusTTP);
+            var publicE = tuputamadre.TTPE;
+            /////////
+            var sigmessage = bigInt(tuputamadre.signature);
+            var signature = sigmessage.modPow(publicE, modulus);
+            buffS = Buffer.from(signature.toString(16), 'hex').toString();
+            //////////
+            var string = thirdpart + "." + origin + "." + destination + "." + sharedKey;
+            var hash = HashJS(string);
+
+            if (hash == buffS) {
+
+                console.log("La clave compartida es: " + sharedKey);
+                var message = CryptoJS.AES.decrypt(criptogram, sharedKey).toString(CryptoJS.enc.Utf8);
+                console.log("El mensaje es: " + message);
+
+            }
+            else {
+                console.log("error");
+                res.send("ERROR")
+            }
+        }
+    });
+}
+
 app.listen(3500, function () {
+    setInterval(function(){ putTimer() },10000);
     console.log('App listening on port 3500!!')
 });
 module.exports = router;
