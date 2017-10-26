@@ -66,7 +66,7 @@
                 b = bigInt.randBetween(base.pow(255), base.pow(256).subtract(1));
                 prime = bigInt(b).isPrime()
             }
-        }
+        };
         $scope.genNRSA=function () {
 
             var base=bigInt(2);
@@ -149,21 +149,35 @@
             if(b==bigInt.zero){$scope.genBRSA(function () {})}
             if($scope.textMessageB!=null)
             {
-                var bfactor= b.modPow(serverE,serverN)
+                var bfactor= b.modPow(serverE,serverN);
                 var buff = convertToHex($scope.textMessageB+" BLIND");
                 var message = bigInt(buff, 16);
-                var enmessage=message.multiply(bfactor).mod(serverN)
+                var enmessage=message.multiply(bfactor).mod(serverN);
                 var data = {
                     message: enmessage
                 };
                 userSRV.sendMessageBlinded(data, function (buff) {
-                    var res=bigInt(buff)
-                    var signature=res.multiply(b.modInv(serverN))
+                    var res=bigInt(buff);
+                    var signature=res.multiply(b.modInv(serverN));
                     $scope.results= convertFromHex(signature.modPow(serverE,serverN).toString(16));
                     $scope.textMessageS="";
                 });
             }
 
+        };
+        $scope.sendThreshold=function () {
+
+            var data={
+                password:$scope.textThreshold,
+                parts:$scope.parts,
+                threshold:$scope.threshold
+            };
+            userSRV.sendThreshold(data,function (res) {
+                $scope.textThreshold="";
+                $scope.parts="";
+                $scope.threshold=""
+                //console.log(res)
+            })
         };
 
         $scope.sendRepudiation=function () {
@@ -193,7 +207,7 @@
 
                     if(buff.origin==undefined)
                     {
-                        $scope.results="ERROR WAPO WAPO"
+                        $scope.results="ERROR WAPO WAPO";
                         $scope.textRepudiation="";
                     }
                     else {

@@ -71,6 +71,19 @@
                 callback(buff.data)
             });
         };
+        this.sendThreshold=function (message,callback) {
+            var req = {
+                method: 'POST',
+                url: '/threshold',
+                headers: {'Content-Type': 'application/json'},
+                data: message
+
+            };
+            $http(req).then(function (buff) {
+                callback(buff.data)
+            });
+        }
+
         this.sendMessageBlinded = function (message, callback) {
 
             var req = {

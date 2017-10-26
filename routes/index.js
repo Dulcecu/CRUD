@@ -3,6 +3,7 @@ var express = require('express'),
 var router = express.Router();
 var HashJS= require('crypto-js/sha256');
 var CryptoJS = require("crypto-js");
+var secrets= require("secrets.js")
 var request=require('request');
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -59,6 +60,20 @@ genNRSA=function () {
     d = e.modInv(phi);
 
 };
+
+app.post('/threshold',function (req,res) {
+
+    var password= req.body.password
+    var passHex=secrets.str2hex(password)
+    var parts=parseInt(req.body.parts)
+    var threshold= parseInt(req.body.threshold)
+    var shares=secrets.share(passHex,parts,threshold)
+
+    var combine=secrets.combine([shares[1],shares[2]])
+    console.log(secrets.hex2str(combine))
+    res.send(shares[1])
+
+})
 
 app.post('/push', function (req, res) {
 
@@ -261,6 +276,7 @@ app.get('/all', function (req,res) {
     })
 
 });
+
 app.get('/filterdb/:letter', function (req, res) {
     var userList=[];
     var letter=req.params.letter;
@@ -276,7 +292,7 @@ function putTimer() {
 
         console.log("He conseguido K?");
 
-    request('http://localhost:3600/getKey', function (error, response, body) {
+    /*request('http://localhost:3600/getKey', function (error, response, body) {
 
         if(body!=0) {
 
@@ -310,11 +326,11 @@ function putTimer() {
                 res.send("ERROR")
             }
         }
-    });
+    });*/
 }
 
 app.listen(3500, function () {
-    setInterval(function(){ putTimer() },10000);
+    //setInterval(function(){ putTimer() },10000);
     console.log('App listening on port 3500!!')
 });
 module.exports = router;
