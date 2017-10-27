@@ -23,12 +23,12 @@ td{
 }
 div.img{
     margin: 5px;
-    border: 1px solid #ffffff;
+    border: 1px solid #040404;
     float: left;
     width: 180px;
 }
 div.img:hover {
-    border: 1px solid #ffffff;
+    border: 1px solid #080808;
 }
 div.img img {
     width: 100%;
@@ -49,4 +49,7 @@ div.desc {
     font-size: 16px;
     margin: 4px 2px;
     cursor: pointer;
+}
+input, select, textarea{
+    color: #080808;
 }

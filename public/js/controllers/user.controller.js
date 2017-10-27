@@ -12,6 +12,7 @@
         var serverE=bigInt.zero;
         var e= bigInt(65537);
         var sharedKey="Masmiwapo";
+        var keys, encA, encB, encAB, encABC;
         $scope.info2=false;
         $scope.infoserver="Faltan datos del servidor";
         $scope.results="";
