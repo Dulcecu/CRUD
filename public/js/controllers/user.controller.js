@@ -1,7 +1,7 @@
 (function() {
     'use strict';
     var app = angular.module('myApp',[]);
-    app.controller('userCtrl', ['userSRV','$scope', function (userSRV,$scope) {
+    app.controller('userCtrl', ['userSRV','blindMOD','$scope', function (userSRV,blindMOD,$scope) {
         $scope.users = [];
         var p=bigInt.zero;
         var q=bigInt.zero;
@@ -147,20 +147,14 @@
 
         $scope.sendBlind=function () {
 
-            if(b==bigInt.zero){$scope.genBRSA(function () {})}
             if($scope.textMessageB!=null)
             {
-                var bfactor= b.modPow(serverE,serverN);
-                var buff = convertToHex($scope.textMessageB+" BLIND");
-                var message = bigInt(buff, 16);
-                var enmessage=message.multiply(bfactor).mod(serverN);
                 var data = {
-                    message: enmessage
+                    message: $scope.textMessageB+" BLIND"
                 };
-                userSRV.sendMessageBlinded(data, function (buff) {
-                    var res=bigInt(buff);
-                    var signature=res.multiply(b.modInv(serverN)).mod(serverN);
-                    $scope.results= convertFromHex(signature.modPow(serverE,serverN).toString(16));
+                blindMOD.sendMessageBlinded(serverE,serverN,data, function (buff) {
+
+                    $scope.results= blindMOD.decodeBlind(buff,serverE,serverN)
                     $scope.textMessageS="";
                 });
             }
