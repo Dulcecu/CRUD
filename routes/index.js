@@ -292,22 +292,22 @@ function putTimer() {
 
         console.log("He conseguido K?");
 
-    /*request('http://localhost:3600/getKey', function (error, response, body) {
+    request('http://localhost:3600/getKey', function (error, response, body) {
 
         if(body!=0) {
 
-            var tuputamadre = JSON.parse(response.body);
+            var datos = JSON.parse(response.body);
 
             var buffS;
             /////////
-            var thirdpart = tuputamadre.thirdpart;
-            var origin = tuputamadre.origin;
-            var destination = tuputamadre.destination;
-            var sharedKey = tuputamadre.key;
-            var modulus = bigInt(tuputamadre.modulusTTP);
-            var publicE = tuputamadre.TTPE;
+            var thirdpart = datos.thirdpart;
+            var origin = datos.origin;
+            var destination = datos.destination;
+            var sharedKey = datos.key;
+            var modulus = bigInt(datos.modulusTTP);
+            var publicE = datos.TTPE;
             /////////
-            var sigmessage = bigInt(tuputamadre.signature);
+            var sigmessage = bigInt(datos.signature);
             var signature = sigmessage.modPow(publicE, modulus);
             buffS = Buffer.from(signature.toString(16), 'hex').toString();
             //////////
@@ -326,12 +326,12 @@ function putTimer() {
                 res.send("ERROR")
             }
         }
-    });*/
+    });
 }
 
 
 app.listen(3500, function () {
-    //setInterval(function(){ putTimer() },10000);
+    setInterval(function(){ putTimer() },10000);
     console.log('App listening on port 3500!!')
 });
 module.exports = router;

@@ -128,14 +128,12 @@
     <h3>Encrypted addition</h3>
     <div>
         <button id="btn_add" type="submit" class="btn btn-primary">Calculate [A+B]</button>
-        <button id="btn_randadd" type="submit" class="btn">Randomize</button>
     </div>
         <div>
             <p>[A + B] = <span class="ciphertext" id="encAB">-</span></p>
             <p>Elapsed time: <span id="addtime">-</span> ms</p>
-            <p>Elapsed time (randomize): <span id="randaddtime">-</span> ms</p>
         </div>
-    <h3>Encrypted multiplication</h3>
+    <!--<h3>Encrypted multiplication</h3>
     <div>
             <label class="control-label" for="inputC">Test input C</label>
             <input type="text" id="inputC" placeholder="Integer">
@@ -147,13 +145,13 @@
             <p>Elapsed time: <span id="multtime">-</span> ms</p>
             <p>Elapsed time (randomize): <span id="randmulttime">-</span> ms</p>
         </div>
-
+-->
     <h3>Decryption</h3>
     <div>
         <button id="btn_decrypt" type="submit" class="btn btn-primary">Decrypt</button>
     </div>
         <div>
-            <p>(A + B)*C = <span class="plaintext" id="plainABC">-</span></p>
+            <p>(A + B) = <span class="plaintext" id="plainABC">-</span></p>
             <p>Elapsed time: <span id="decrypttime">-</span> ms</p>
     </div>
     <!--<button class ="button" ng-click="remove()">Remove User</button>
@@ -224,6 +222,9 @@
             elapsed = new Date().getTime() - startTime;
             $('#addtime').html(elapsed);
             $('#encAB').html(encAB.toString());
+            var valC = 1;
+            encABC = keys.pub.mult(encAB,nbv(valC));
+
         });
         $('#btn_randadd').click(function() {
             var startTime,
@@ -234,8 +235,8 @@
             $('#randaddtime').html(elapsed);
             $('#encAB').html(encAB.toString());
         });
-        $('#btn_mult').click(function(event) {
-            var valC = parseInt($('#inputC').val()),
+        /*$('#btn_mult').click(function(event) {
+            var valC = 1,
                 startTime,
                 elapsed;
             startTime = new Date().getTime();
@@ -252,7 +253,7 @@
             elapsed = new Date().getTime() - startTime;
             $('#randmulttime').html(elapsed);
             $('#encABC').html(encABC.toString());
-        });
+        });*/
         $('#btn_decrypt').click(function() {
             var plaintext,
                 startTime,

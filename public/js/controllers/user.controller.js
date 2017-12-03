@@ -159,7 +159,7 @@
                 };
                 userSRV.sendMessageBlinded(data, function (buff) {
                     var res=bigInt(buff);
-                    var signature=res.multiply(b.modInv(serverN));
+                    var signature=res.multiply(b.modInv(serverN)).mod(serverN);
                     $scope.results= convertFromHex(signature.modPow(serverE,serverN).toString(16));
                     $scope.textMessageS="";
                 });
