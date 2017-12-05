@@ -1,7 +1,7 @@
 (function() {
     'use strict';
     var app = angular.module('myApp',[]);
-    app.controller('userCtrl', ['userSRV','blindMOD','$scope', function (userSRV,blindMOD,$scope) {
+    app.controller('userCtrl', ['userSRV','blindMOD','nonRepMOD','$scope', function (userSRV, blindMOD, nonRepMOD, $scope) {
         $scope.users = [];
         var p=bigInt.zero;
         var q=bigInt.zero;
@@ -11,7 +11,6 @@
         var serverN=bigInt.zero;
         var serverE=bigInt.zero;
         var e= bigInt(65537);
-        var sharedKey="Masmiwapo";
         var keys, encA, encB, encAB, encABC;
         $scope.info2=false;
         $scope.infoserver="Faltan datos del servidor";
@@ -184,95 +183,47 @@
                 var destination="B";
                 var thirdpart="TTP";
                 var message=$scope.textRepudiation;
-                var cypher=CryptoJS.AES.encrypt(message,sharedKey).toString();
-                var string=origin+"."+destination+"."+cypher;
-                var hash=CryptoJS.SHA256(string).toString();
-                var signature=convertToHex(hash);
-                var messageS=bigInt(signature, 16);
-                var sigmessage=messageS.modPow(d,n);
-                var data = {
-                    origin:origin,
-                    destination:destination,
-                    message: cypher,
-                    signature:sigmessage,
-                    modulus:n,
-                    publicE:e
-                };
-                userSRV.sendMessageSignedRepudiation(data, function (buff) {
+                var server = 'http://localhost:3500';
+                var sharedKey="Masmiwapo";
 
-                    if(buff.origin==undefined)
+                nonRepMOD.sendMessageToSever(origin,destination,thirdpart,server,sharedKey,d,n,e,message,function (buff) {
+
+                    if(buff.origin===undefined)
                     {
                         $scope.results="ERROR WAPO WAPO";
                         $scope.textRepudiation="";
                     }
                     else {
-                        var buffS;
-                        /////////
-                        var origin = buff.origin;
-                        var destination = buff.destination;
-                        var message = buff.message;
-                        var string = origin + "." + destination + "." + message;
-                        var sigmessage = bigInt(buff.signature);
-                        var signature = sigmessage.modPow(serverE, serverN);
-                        buffS = convertFromHex(signature.toString(16)).toString();
-                        //////////
-                        var string = origin + "." + destination + "." + message;
-                        var hash = CryptoJS.SHA256(string).toString();
-                        if (hash == buffS) {
+                        nonRepMOD.checkPayload(buff.origin,buff.destination,buff.message,serverE,serverN,buff.signature,function (res) {
 
-                            var string=origin+"."+thirdpart+"."+destination+"."+sharedKey;
-                            var hash=CryptoJS.SHA256(string).toString();
-                            var signature=convertToHex(hash);
-                            var messageS=bigInt(signature, 16);
-                            var sigmessage=messageS.modPow(d,n);
+                            if(res === 1){
 
-                            var data = {
-                                origin:origin,
-                                thirdpart:thirdpart,
-                                destination:destination,
-                                key:sharedKey,
-                                signature:sigmessage,
-                                modulus:n,
-                                publicE:e
-                            };
-                            console.log("a consultar con la tercera parte ");
+                                var ttp = 'http://localhost:3600';
+                                console.log("A consultar con la tercera parte ");
+                                nonRepMOD.sendMessageToThirdPart(origin,destination,sharedKey,thirdpart,d,n,e,ttp,function (buff2) {
 
-                            userSRV.sendMessageToThirdPart(data,function (buff2) {
+                                    nonRepMOD.checkPayloadTTP(buff2.origin,buff2.destination,buff2.key,buff2.TTPE,buff2.modulusTTP,buff2.thirdpart,buff2.signature,function (res2) {
 
-                                var buffS;
-                                /////////
-                                var thirdpart=buff2.thirdpart;
-                                var origin=buff2.origin;
-                                var destination=buff2.destination;
-                                var sharedKey=buff2.key;
-                                var modulus= bigInt(buff2.modulusTTP);
-                                var publicE=buff2.TTPE;
-                                /////////
-                                var sigmessage=bigInt(buff2.signature);
-                                var signature=sigmessage.modPow(publicE,modulus);
-                                buffS = convertFromHex(signature.toString(16)).toString();
-                                //////////
-                                var string=thirdpart+"."+origin+"."+destination+"."+sharedKey;
-                                var hash = CryptoJS.SHA256(string).toString();
-                                if(hash==buffS){
+                                        if(res2 === 1){
+                                            console.log("La clave compartida es: "+ sharedKey);
+                                            var message = CryptoJS.AES.decrypt(buff.message,sharedKey).toString(CryptoJS.enc.Utf8);
+                                            console.log("El mensaje es: "+message);
+                                            $scope.results = "TTP LO HA HECHO BIEN";
+                                            $scope.textRepudiation="";
+                                        }
 
-                                    console.log("La clave compartida es: "+ sharedKey);
-                                    var message = CryptoJS.AES.decrypt(buff.message,sharedKey).toString(CryptoJS.enc.Utf8);
-                                    console.log("El mensaje es: "+message);
+                                        else {
+                                            $scope.results = "ERROR MASMASTICO"
+                                        }
 
-                                    $scope.results = "Masmi es el mas pulido";
+                                    });
 
-                                }
-                                else {
-                                    $scope.results = "ERROR MASMASTICO"
-                                }
-
-                            });
-
-                        } else {
-                            $scope.results = "ERROR WAPO"
-                        }
-                        $scope.textRepudiation="";
+                                });
+                            }
+                            else {
+                                $scope.results = "ERROR WAPO"
+                            }
+                        });
                     }
 
                 });

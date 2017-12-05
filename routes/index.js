@@ -5,6 +5,7 @@ var HashJS= require('crypto-js/sha256');
 var CryptoJS = require("crypto-js");
 var secrets= require("secrets.js")
 var request=require('request');
+var nonRep = require('./nonRepudiation');
 /* GET home page. */
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
@@ -203,55 +204,26 @@ app.post('/decodeSigned',function (req,res) {
 
 app.post('/repudiationSigned',function (req,res) {
 
-    if(n==bigInt.zero){
-        this.genNRSA(function () {
-
-        })
+    if(n===bigInt.zero){
+        this.genNRSA(function () {})
     }
     else{
+        nonRep.checkPayload(req.body.origin,req.body.destination,req.body.message,req.body.modulus,req.body.publicE,req.body.signature,function (buff) {
 
-        var buffS;
-        /////////
-        var origin=req.body.origin;
-        var destination=req.body.destination;
-        var message=req.body.message;
-        criptogram = message;
-        var modulus= bigInt(req.body.modulus);
-        var publicE=req.body.publicE;
-        /////////
-        var sigmessage=bigInt(req.body.signature);
-        var signature=sigmessage.modPow(publicE,modulus);
-        buffS=Buffer.from(signature.toString(16),'hex').toString();
-        //////////
-        var string=origin+"."+destination+"."+message;
-        var hash=HashJS(string);
+            if(buff === 1){
 
-        if(hash==buffS){
+                nonRep.returnMessagefromServer(req.body.origin,req.body.destination,req.body.message,d,n,function (data) {
+                    console.log("He recibido el mensaje de A");
 
-
-            string=destination+"."+origin+"."+message
-            hash=HashJS(string);
-            var buff=Buffer.from(hash.toString(),'utf8');
-            var message2=bigInt(buff.toString('hex'),16);
-            var enmessage=message2.modPow(d,n);
-            var data = {
-                origin:destination,
-                destination:origin,
-                signature: enmessage,
-                message:req.body.message
-
-            };
-
-            console.log("He recibido el mensaje de A")
-
-            res.send(data)
-        }
-        else {
-            console.log("Algo paso")
-            res.send("ERROR")
-        }
+                    res.send(data)
+                });
+            }
+            else {
+                console.log("Algo paso");
+                res.send("ERROR")
+            }
+        });
     }
-
 });
 
 
@@ -289,46 +261,9 @@ app.get('/filterdb/:letter', function (req, res) {
 });
 
 function putTimer() {
-
-        console.log("He conseguido K?");
-
-    request('http://localhost:3600/getKey', function (error, response, body) {
-
-        if(body!=0) {
-
-            var datos = JSON.parse(response.body);
-
-            var buffS;
-            /////////
-            var thirdpart = datos.thirdpart;
-            var origin = datos.origin;
-            var destination = datos.destination;
-            var sharedKey = datos.key;
-            var modulus = bigInt(datos.modulusTTP);
-            var publicE = datos.TTPE;
-            /////////
-            var sigmessage = bigInt(datos.signature);
-            var signature = sigmessage.modPow(publicE, modulus);
-            buffS = Buffer.from(signature.toString(16), 'hex').toString();
-            //////////
-            var string = thirdpart + "." + origin + "." + destination + "." + sharedKey;
-            var hash = HashJS(string);
-
-            if (hash == buffS) {
-
-                console.log("La clave compartida es: " + sharedKey);
-                var message = CryptoJS.AES.decrypt(criptogram, sharedKey).toString(CryptoJS.enc.Utf8);
-                console.log("El mensaje es: " + message);
-
-            }
-            else {
-                console.log("error");
-                res.send("ERROR")
-            }
-        }
-    });
+    var ttpURL = 'http://localhost:3600';
+    nonRep.consultTTP(ttpURL)
 }
-
 
 app.listen(3500, function () {
     setInterval(function(){ putTimer() },10000);

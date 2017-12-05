@@ -44,7 +44,7 @@
                 callback(buff.data)
             });
         };
-        this.sendMessageSignedRepudiation = function (message, callback) {
+        /*this.sendMessageSignedRepudiation = function (message, callback) {
 
             var req = {
                 method: 'POST',
@@ -56,9 +56,9 @@
             $http(req).then(function (buff) {
                 callback(buff.data)
             });
-        };
+        };*/
 
-        this.sendMessageToThirdPart = function (message, callback) {
+       /* this.sendMessageToThirdPart = function (message, callback) {
 
             var req = {
                 method: 'POST',
@@ -70,7 +70,8 @@
             $http(req).then(function (buff) {
                 callback(buff.data)
             });
-        };
+        };*/
+
         this.sendThreshold=function (message,callback) {
             var req = {
                 method: 'POST',
@@ -84,7 +85,7 @@
             });
         }
 
-        this.sendMessageBlinded = function (message, callback) {
+       /* this.sendMessageBlinded = function (message, callback) {
 
             var req = {
                 method: 'POST',
@@ -96,7 +97,7 @@
             $http(req).then(function (buff) {
                 callback(buff.data)
             });
-        };
+        }; */
         this.getUsers = function (callback) {
 
             $http.get('/all').then(function (response) {
